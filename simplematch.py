@@ -1,7 +1,7 @@
 import hashlib
 
 class Matcher(object):
-    """Quickly match a user-agent string to a pattern or determine that
+    """Quickly match a user agent string to a pattern or determine that
     no pattern matches.
     """
     
@@ -29,7 +29,7 @@ class Matcher(object):
                 self.add_wildcard_pattern(pattern)
                 
             else:
-                ve = "Pattern %i invalid: * can only appear once."
+                ve = "Pattern %i invalid: * can only appear once." % j
                 raise ValueError(ve)
 
         self.literals = self.make_literal_set(literals)
@@ -74,9 +74,9 @@ class Matcher(object):
         TODO for further speed: based on real user agent distributions
         encountered in production, reorder the wildcard_pattern test loop to
         try most-likely first. This can be formulated as an online learning
-        task instead of baked in as configuration values.
+        task instead of using static configuration values.
 
-        @param ua_string: the user-agent string to be matched
+        @param ua_string: the user agent string to be matched
         @type ua_string : str
         @return: matching pattern | None
         @rtype : str | None
