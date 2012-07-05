@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+#make sure PYTHONPATH includes ..
 
 import sys
 import unittest
+import simplematch
 
 class BasicTestCase(unittest.TestCase):
     
@@ -11,6 +13,33 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_basic_patterns(self):
+        #test examples from email
+        basic_expressions = ['Ask',
+                             'Ask*',
+                             'Mozilla/1.0 (compatible; Ask Jeeves/Teoma*',
+                             'Mozilla/2.0 (compatible; Ask Jeeves/Teoma*',
+                             'Mozilla/2.0 (compatible; Ask Jeeves)',
+                             'Baiduspider-image*',
+                             'Baiduspider-ads*',
+                             'Baiduspider-cpro*',
+                             'Baiduspider-favo*']
+
+        expected = {'Ask' : 'Ask',
+                    'AskBot' : 'Ask*',
+                    'Mozilla/2.0 (compatible; Ask Jeeves)' : 'Mozilla/2.0 (compatible; Ask Jeeves)',
+                    'Baiduspider-adserver' : 'Baiduspider-ads*',
+                    'Baiduspider-aserver' : None,
+                    'Mozilla/1.0 (compatible; Ask Jeeves' : None,
+                    'Baiduspider-favo' : None,
+                    'askbot' : None
+                    }
+
+        matcher = simplematch.Matcher(basic_expressions)
+        for agent in expected:
+            result = matcher.match(agent)
+            self.assertEqual(expected[agent], result)
+        
 def runSuite(cls, verbosity=2, name=None):
     """Run a unit test suite and return status code.
 
