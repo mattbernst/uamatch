@@ -22,8 +22,23 @@ class BasicTestCase(unittest.TestCase):
         for p in bad_patterns:
             self.assertRaises(ValueError, simplematch.Matcher, [p])
 
+    def test_universal_pattern(self):
+        #a wildcard-only pattern should match any non-empty string
+        
+        m = simplematch.Matcher(['*'])
+        uagents = ['X', 'Ask', 'AskBot', 'Mozilla/2.0 (compatible; Ask Jeeves)',
+                   'Baiduspider-adserver', 'Baiduspider-aserver',
+                   'Mozilla/1.0 (compatible; Ask Jeeves',
+                   'Baiduspider-favo', 'askbot']
+
+        self.assertEqual(None, m.match(''))
+        
+        for ua in uagents:
+            self.assertEqual('*', m.match(ua))
+            
     def test_basic_patterns(self):
-        #test examples from email
+        #validate examples given from problem description
+        
         basic_patterns = ['Ask',
                           'Ask*',
                           'Mozilla/1.0 (compatible; Ask Jeeves/Teoma*',
