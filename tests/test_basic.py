@@ -13,17 +13,26 @@ class BasicTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_bad_patterns(self):
+        #ensure rejection of bad wildcard patterns
+
+        bad_patterns = ["Ask Jeeves**",
+                        "A*k Jeeves"]
+
+        for p in bad_patterns:
+            self.assertRaises(ValueError, simplematch.Matcher, [p])
+
     def test_basic_patterns(self):
         #test examples from email
-        basic_expressions = ['Ask',
-                             'Ask*',
-                             'Mozilla/1.0 (compatible; Ask Jeeves/Teoma*',
-                             'Mozilla/2.0 (compatible; Ask Jeeves/Teoma*',
-                             'Mozilla/2.0 (compatible; Ask Jeeves)',
-                             'Baiduspider-image*',
-                             'Baiduspider-ads*',
-                             'Baiduspider-cpro*',
-                             'Baiduspider-favo*']
+        basic_patterns = ['Ask',
+                          'Ask*',
+                          'Mozilla/1.0 (compatible; Ask Jeeves/Teoma*',
+                          'Mozilla/2.0 (compatible; Ask Jeeves/Teoma*',
+                          'Mozilla/2.0 (compatible; Ask Jeeves)',
+                          'Baiduspider-image*',
+                          'Baiduspider-ads*',
+                          'Baiduspider-cpro*',
+                          'Baiduspider-favo*']
 
         expected = {'Ask' : 'Ask',
                     'AskBot' : 'Ask*',
@@ -35,7 +44,7 @@ class BasicTestCase(unittest.TestCase):
                     'askbot' : None
                     }
 
-        matcher = simplematch.Matcher(basic_expressions)
+        matcher = simplematch.Matcher(basic_patterns)
         for agent in expected:
             result = matcher.match(agent)
             self.assertEqual(expected[agent], result)
