@@ -127,7 +127,11 @@ def match_interactive(matcher):
     err_msg = "Bad input."
 
     while True:
-        cmd = raw_input('> ').strip()
+        try:
+            cmd = raw_input('> ').strip()
+        except EOFError:
+            sys.exit(0)
+            
         if cmd == 'quit':
             sys.exit(0)
 
