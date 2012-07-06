@@ -1,4 +1,5 @@
-import hashlib
+import sys
+import optparse
 
 class Matcher(object):
     """Quickly match a user agent string to a pattern or determine that
@@ -16,6 +17,7 @@ class Matcher(object):
         literals = []
         
         for j, pattern in enumerate(patterns):
+            pattern = pattern.strip()
             wildcards = pattern.count('*')
             
             if wildcards == 0:
@@ -60,7 +62,7 @@ class Matcher(object):
         for size in self.wildcard_patterns:
             self.wildcard_patterns[size] = self.make_literal_set(self.wildcard_patterns[size])
 
-    def match(self, ua_string):
+    def matchRegex(self, ua_string):
         """Try to pair a user agent with literal and wildcard patterns.
 
         Dictionary lookups and set membership tests are both fast operations
@@ -112,5 +114,68 @@ class Matcher(object):
         frozen = frozenset(literals)
         return frozen
 
-        
-        
+def match_interactive(matcher):
+    print 'Try matchRegex("SomePattern") or type quit to quit.\n'
+
+    matchRegex = matcher.matchRegex
+    cmd = ""
+
+    err_msg = "Bad input."
+
+    while True:
+        cmd = raw_input('> ').strip()
+        if cmd == 'quit':
+            sys.exit(0)
+
+        elif cmd.startswith('matchRegex("'):
+            try:
+                result = eval(cmd)
+                if result is None:
+                    print "null"
+
+                else:
+                    print '"%s"' % result
+            except:
+                print err_msg
+
+        else:
+            print err_msg
+
+if __name__ == '__main__':
+    default_patterns = ['Ask',
+                        'Ask*',
+                        'Mozilla/1.0 (compatible; Ask Jeeves/Teoma*',
+                        'Mozilla/2.0 (compatible; Ask Jeeves/Teoma*',
+                        'Mozilla/2.0 (compatible; Ask Jeeves)',
+                        'Baiduspider-image*',
+                        'Baiduspider-ads*',
+                        'Baiduspider-cpro*',
+                        'Baiduspider-favo*']
+    
+    parser = optparse.OptionParser()
+
+    parser.add_option("-p", "--pattern-file",
+                      action="store", type="string", dest="pattern_file",
+                      default="",
+                      help="File containing patterns to match, one per line.")
+
+    parser.add_option("--non-interactive",
+                      action="store_false", dest="interactive",
+                      default=True,
+                      help="Don't go into interactive mode.")
+
+    options, args = parser.parse_args()
+
+    if options.pattern_file:
+        try:
+            m = Matcher(open(options.pattern_file))
+        except IOError:
+            sys.stderr.write("Can't load match patterns from %s.\n" % options.pattern_file)
+            sys.exit(1)
+
+    else:
+        m = Matcher(default_patterns)
+
+
+    if options.interactive:
+        match_interactive(m)

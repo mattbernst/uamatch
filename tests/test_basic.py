@@ -31,10 +31,10 @@ class BasicTestCase(unittest.TestCase):
                    'Mozilla/1.0 (compatible; Ask Jeeves',
                    'Baiduspider-favo', 'askbot']
 
-        self.assertEqual(None, m.match(''))
+        self.assertEqual(None, m.matchRegex(''))
         
         for ua in uagents:
-            self.assertEqual('*', m.match(ua))
+            self.assertEqual('*', m.matchRegex(ua))
             
     def test_basic_patterns(self):
         #validate examples given from problem description
@@ -61,7 +61,7 @@ class BasicTestCase(unittest.TestCase):
 
         matcher = simplematch.Matcher(basic_patterns)
         for agent in expected:
-            result = matcher.match(agent)
+            result = matcher.matchRegex(agent)
             self.assertEqual(expected[agent], result)
         
 def runSuite(cls, verbosity=2, name=None):

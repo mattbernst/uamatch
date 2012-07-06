@@ -64,14 +64,14 @@ class PerfTestCase(unittest.TestCase):
         t0 = time.time()
 
         for agent in agents:
-            matcher.match(agent)
+            matcher.matchRegex(agent)
 
         elapsed = time.time() - t0
 
         return elapsed
 
     def test_time_scaling(self):
-        #test match speed scaling as number of patterns increases
+        #test match-speed scaling as number of patterns increases
 
         def random_prefix():
             prefix = list("somerandomjunk")
@@ -103,7 +103,7 @@ class PerfTestCase(unittest.TestCase):
             scaling = times[0] / t
             scalings.append(scaling)
 
-        #slow scaling: adding 10 times the patterns increases lookup cost by
+        #slow scaling: adding 10 times as many patterns increases lookup cost by
         #less than 30%, across 4 orders of magnitude
         for s in scalings:
             self.assertTrue(s < 1.3)
