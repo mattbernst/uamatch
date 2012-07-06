@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os
 import subprocess
 import random
 import time
@@ -70,6 +71,41 @@ class PerfTestCase(unittest.TestCase):
 
         return elapsed
 
+    def test_memory_scaling(self):
+        #test memory-consumption scaling as number of patterns increases
+
+        wildcard_fraction = 0.8
+        kilobytes = []
+        scale_factor = 10
+        sizes = [1000, 10000, 100000, 1000000]
+
+        all_patterns = self.make_patterns(sizes[-1], wildcard_fraction)
+        pattern_file = 'test_patterns.txt'
+        
+        for size in sizes:
+            outfile = open(pattern_file, 'w')
+            for pattern in all_patterns[:size]:
+                outfile.write(pattern + '\n')
+
+            cmd = "python simplematch.py -p %s --non-interactive" % pattern_file
+            memory = self.measure_peak_memory(cmd)
+            kilobytes.append(memory)
+
+        scalings = []
+        while len(kilobytes) > 1:
+            kb = kilobytes.pop(0)
+            scaling = kilobytes[0] / float(kb)
+            scalings.append(scaling)
+
+        #memory scales up faster than run time, but no worse than linear
+        #N.B.: memory use expected to nearly double for 64 bit interpreter,
+        #due to double pointer size
+        try:
+            for scaling in scalings:
+                self.assertTrue(scaling < scale_factor)
+        finally:
+            os.unlink(pattern_file)
+
     def test_time_scaling(self):
         #test match-speed scaling as number of patterns increases
 
@@ -82,8 +118,9 @@ class PerfTestCase(unittest.TestCase):
         sizes = [1000, 10000, 100000, 1000000]
         test_iterations = 100000
         no_match_fraction = 0.2
+        wildcard_fraction = 0.8
 
-        all_patterns = self.make_patterns(sizes[-1], 0.8)
+        all_patterns = self.make_patterns(sizes[-1], wildcard_fraction)
 
         #create random user agent sequence, and ensure that some fraction
         #will not match
@@ -130,10 +167,6 @@ class PerfTestCase(unittest.TestCase):
             if 'Maximum resident set size' in line:
                 kilobytes = int(line.split(':')[-1])
                 return kilobytes
-
-    def test_memory_trivial(self):
-        kb = self.measure_peak_memory('python -c "2 ** 12345678"')
-        self.assertTrue(kb < 40000)
 
 def runSuite(cls, verbosity=2, name=None):
     """Run a unit test suite and return status code.
