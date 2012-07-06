@@ -6,7 +6,7 @@ export PYTHONPATH=$PYTHONPATH:..
 python tests/test_basic.py
 python tests/test_performance.py
 
-On a laptop running 32 bit Ubuntu 10.04, the matcher can test approximately 1.5 million pseudorandom user agent strings per second against a match set of 250000 pseudorandom match patterns. See test_speed in test_performance.py.
+On a laptop running 32 bit Ubuntu 10.04, the matcher can test approximately 1.5 million pseudorandom user agent strings per second against 250000 pseudorandom match patterns. See test_speed in test_performance.py.
 
 To run interactively, in the uamatch directory do:
 python simplematch.py
