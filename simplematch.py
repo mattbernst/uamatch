@@ -119,6 +119,12 @@ class Matcher(object):
         return frozen
 
 def match_interactive(matcher):
+    """Allow the user to test expressions interactively against a matcher.
+
+    @param matcher: matcher containing patterns to test
+    @type matcher : Matcher
+    """
+    
     print 'Try matchRegex("SomePattern") or type quit to quit.\n'
 
     matchRegex = matcher.matchRegex
@@ -177,13 +183,17 @@ if __name__ == '__main__':
     if options.pattern_file:
         try:
             m = Matcher(open(options.pattern_file))
+            
         except IOError:
             sys.stderr.write("Can't load match patterns from %s.\n" % options.pattern_file)
             sys.exit(1)
 
+        except ValueError, e:
+            sys.stderr.write(e.args[0] + '\n')
+            sys.exit(1)
+
     else:
         m = Matcher(default_patterns)
-
 
     if options.interactive:
         match_interactive(m)
