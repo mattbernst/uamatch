@@ -6,6 +6,7 @@ import subprocess
 import random
 import time
 import shlex
+import string
 import unittest
 import simplematch
 
@@ -35,7 +36,7 @@ class PerfTestCase(unittest.TestCase):
         """
 
         agents = [line.strip() for line in open(agent_file).readlines()]
-        patterns = []
+        patterns = set()
 
         for j in range(n):
             agent = random.choice(agents)
@@ -44,12 +45,15 @@ class PerfTestCase(unittest.TestCase):
             if wildcard:
                 cut_point = random.randint(1, len(agent))
                 pattern = agent[:cut_point] + '*'
-                patterns.append(pattern)
+                while pattern in patterns:
+                    pattern = pattern.replace('*', '%s*' % random.choice(string.ascii_letters))
+
+                patterns.add(pattern)
 
             else:
-                patterns.append(agent)
+                patterns.add(agent)
 
-        return patterns
+        return list(patterns)
 
     def time_matches(self, matcher, agents):
         """Measure the time elapsed for matcher to match/reject all agents.
@@ -74,7 +78,7 @@ class PerfTestCase(unittest.TestCase):
     def test_memory_scaling(self):
         #test memory-consumption scaling as number of patterns increases
 
-        wildcard_fraction = 0.8
+        wildcard_fraction = 0.9
         kilobytes = []
         scale_factor = 10
         sizes = [1000, 10000, 100000, 1000000]
@@ -106,32 +110,65 @@ class PerfTestCase(unittest.TestCase):
         finally:
             os.unlink(pattern_file)
 
-    def test_time_scaling(self):
-        #test match-speed scaling as number of patterns increases
+    def make_test_strings(self, n, no_match_fraction):
+        """Produce a pseudorandom sequence of user agent strings for match
+        testing.
+
+        @param n: number of test strings to produce
+        @type n : int
+        @param no_match_fraction: fraction of strings that should fail to match
+        @type no_match_fraction : float
+        @return: test strings
+        @rtype : list
+        """
 
         def random_prefix():
             prefix = list("somerandomjunk")
             random.shuffle(prefix)
             return ''.join(prefix)
 
+        test_patterns = self.make_patterns(n, 0.0)
+
+        for j in range(len(test_patterns)):
+            if random.random() < no_match_fraction:
+                test_patterns[j] = random_prefix() + test_patterns[j]
+
+        return test_patterns
+
+    def test_speed(self):
+        #show tests per second against pseudorandom user agent strings
+
+        wildcard_fraction = 0.9
+        no_match_fraction = 0.2
+        num_patterns = 250000
+        test_iterations = 100000
+        all_patterns = self.make_patterns(num_patterns, wildcard_fraction)
+        test_patterns = self.make_test_strings(test_iterations,
+                                               no_match_fraction)
+        
+        m = simplematch.Matcher(all_patterns)
+        t = self.time_matches(m, test_patterns)
+
+        matches_per_second = test_iterations / t
+        print "\nPerformed %.0f tests per second against matcher containing %i pseudorandom patterns" % (matches_per_second, num_patterns)
+        
+    
+    def test_time_scaling(self):
+        #test worst case match-speed scaling as number of patterns increases
+
         times = []
         sizes = [1000, 10000, 100000, 1000000]
         test_iterations = 100000
         no_match_fraction = 0.2
-        wildcard_fraction = 0.8
+        wildcard_fraction = 0.9
 
         all_patterns = self.make_patterns(sizes[-1], wildcard_fraction)
 
-        #create random user agent sequence, and ensure that some fraction
-        #will not match
-        test_patterns = self.make_patterns(test_iterations, 0.0)
-        for j in range(len(test_patterns)):
-            if random.random() < no_match_fraction:
-                test_patterns[j] = random_prefix() + test_patterns[j]
-                
         for size in sizes:
             m = simplematch.Matcher(all_patterns[:size])
-            t = self.time_matches(m, test_patterns)
+            #worst performance case: '$' will never match, all tests must
+            #be exhausted
+            t = self.time_matches(m, ['$'] * test_iterations)
             times.append(t)
 
         scalings = []
@@ -140,10 +177,10 @@ class PerfTestCase(unittest.TestCase):
             scaling = times[0] / t
             scalings.append(scaling)
 
-        #slow scaling: adding 10 times as many patterns increases lookup cost by
-        #less than 30%, across 4 orders of magnitude
+        #slow scaling: adding 10 times as many patterns increases test cost by
+        #less than 50%, across 4 orders of magnitude
         for s in scalings:
-            self.assertTrue(s < 1.3)
+            self.assertTrue(s < 1.5)
 
     def measure_peak_memory(self, cmd):
         """Measure the maximum resident set size of a command executed in a

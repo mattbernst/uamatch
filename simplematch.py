@@ -61,8 +61,10 @@ class Matcher(object):
         frozen sets for fast membership testing.
         """
 
+        ct = 0
         for size in self.wildcard_patterns:
             self.wildcard_patterns[size] = self.make_literal_set(self.wildcard_patterns[size])
+            ct += len(self.wildcard_patterns[size])
 
     def matchRegex(self, ua_string):
         """Try to pair a user agent with literal and wildcard patterns.
