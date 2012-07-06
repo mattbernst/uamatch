@@ -130,6 +130,8 @@ class PerfTestCase(unittest.TestCase):
         test_patterns = self.make_patterns(n, 0.0)
 
         for j in range(len(test_patterns)):
+            #add a random prefix to prevent matching anything: this will
+            #yield the worst-case performance for the match attempt
             if random.random() < no_match_fraction:
                 test_patterns[j] = random_prefix() + test_patterns[j]
 

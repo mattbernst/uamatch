@@ -1,0 +1,30 @@
+This software quickly matches an input string literally or against a prefix followed by 1 or more additional characters, e.g. "Mozilla/4.0 (compatible;)" or "Mozilla/4.0*". You will need Python 2.5, 2.6, or 2.7 installed; no additional libraries are necessary.
+
+To run tests in a terminal:
+cd uamatch
+export PYTHONPATH=$PYTHONPATH:..
+python tests/test_basic.py
+python tests/test_performance.py
+
+On a laptop running 32 bit Ubuntu 10.04, the matcher can test approximately 1.5 million pseudorandom user agent strings per second against a match set of 250000 pseudorandom match patterns. See test_speed in test_performance.py.
+
+To run interactively, in the uamatch directory do:
+python simplematch.py
+
+In interactive mode you can type matchRegex("pattern") to test a string.
+
+The default pattern set is:
+Ask
+Ask*
+Mozilla/1.0 (compatible; Ask Jeeves/Teoma*
+Mozilla/2.0 (compatible; Ask Jeeves/Teoma*
+Mozilla/2.0 (compatible; Ask Jeeves)
+Baiduspider-image*
+Baiduspider-ads*
+Baiduspider-cpro*
+Baiduspider-favo*
+
+To load a different pattern set for interactive testing, run:
+python simplematch.py -p pattern_file.txt
+
+where the pattern file contains one literal or wildcard-suffixed pattern per line.
